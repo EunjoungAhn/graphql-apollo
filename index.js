@@ -1,6 +1,7 @@
 const { ApolloServer, gql } = require('apollo-server');
 //파일을 읽는 함수 받아오기
 const { readFileSync } = require('fs');
+const { argsToArgsConfig } = require('graphql/type/definition');
 //ApolloServer에서 typeDefs 받아와 
 
 // The GraphQL
@@ -11,6 +12,7 @@ const typeDefs = gql`
     "A simple type for getting started!"
     hello: String
     books: [Book]
+    book(bookID: Int) : Book
   }
   type Book {
     bookId: Int
@@ -28,6 +30,10 @@ const resolvers = {
     hello: () => 'world',
     books: () => {
       return JSON.parse(readFileSync(join(__dirname, 'books.js')).toString());
+    },
+    books: (parent, args, context, info) => {
+      const books = JSON.parse(readFileSync(join(__dirname, 'books.js')).toString());
+      return books.find(book => book.bookId === arg.bookId);
     }
   },
 };
