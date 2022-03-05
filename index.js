@@ -15,7 +15,11 @@ const typeDefs = gql`
     book(bookID: Int) : Book
   }
   type Mutation {
-    addBook(title: String, message:String, author: String, url: String)
+    addBook(title: String, message:String, author: String, url: String) : Book
+    editBook(
+      bookId: Int, title: String, message:String, author: String, url: String
+    ) : Book
+    deleteBook(bookId: Int) : Book 
   }
   type Book {
     bookId: Int
@@ -43,6 +47,7 @@ const resolvers = {
       return books.find(book => book.bookId === arg.bookId);
     },
   },
+  //mutations 데이터 추가하기
   mutations: {
     addBook: (parent, args, context, info) => {
       const books = JSON.parse(
@@ -55,6 +60,43 @@ const resolvers = {
         JSON.stringify([...books, newBook])
       );
       return newBook;
+    },
+    //데이터 추가
+    editBook: (parent, args, context, info) => {
+      const books = JSON.parse(
+        readFileSync(join(__dirname, 'books.js')).toString()
+      );
+      
+      const newBooks = books.map(book => {
+        if(book.bookId === args.bookId){
+          return args;
+        } else {
+          return book;
+        }
+      })
+
+      writeFileSync(
+        join(__dirname, 'books.js'), 
+        JSON.stringify([...books, newBook])
+      );
+      return args;
+    },
+    //데이터 삭제
+    deleteBook: (parent, args, context, info) => {
+      const books = JSON.parse(
+        readFileSync(join(__dirname, 'books.js')).toString()
+      );
+
+      const deleted = books.find(book => book.bookId === args.bookId);
+      
+      const newBooks = books.filter((book) => book.bookId !== args.bookId)
+
+      writeFileSync(
+        join(__dirname, 'books.js'), 
+        JSON.stringify(newBooks)
+      );
+      
+      return deleted;
     },
   },
 };
