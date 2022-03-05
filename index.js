@@ -1,6 +1,6 @@
 const { ApolloServer, gql } = require('apollo-server');
 //파일을 읽는 함수 받아오기
-const { readFileSync } = require('fs');
+const { readFileSync, writeFileSync } = require('fs');
 const { argsToArgsConfig } = require('graphql/type/definition');
 //ApolloServer에서 typeDefs 받아와 
 
@@ -13,6 +13,9 @@ const typeDefs = gql`
     hello: String
     books: [Book]
     book(bookID: Int) : Book
+  }
+  type Mutation {
+    addBook(title: String, message:String, author: String, url: String)
   }
   type Book {
     bookId: Int
@@ -29,12 +32,30 @@ const resolvers = {
   Query: {
     hello: () => 'world',
     books: () => {
-      return JSON.parse(readFileSync(join(__dirname, 'books.js')).toString());
+      return JSON.parse(
+        readFileSync(join(__dirname, 'books.js')).toString()
+      );
     },
     books: (parent, args, context, info) => {
-      const books = JSON.parse(readFileSync(join(__dirname, 'books.js')).toString());
+      const books = JSON.parse(
+        readFileSync(join(__dirname, 'books.js')).toString()
+      );
       return books.find(book => book.bookId === arg.bookId);
-    }
+    },
+  },
+  mutations: {
+    addBook: (parent, args, context, info) => {
+      const books = JSON.parse(
+        readFileSync(join(__dirname, 'books.js')).toString()
+      );
+      const maxId = Max.max(...books.map(book => book.bookId));
+      const newBook = {...args, bookId:maxId + 1};
+      writeFileSync(
+        join(__dirname, 'books.js'), 
+        JSON.stringify([...books, newBook])
+      );
+      return newBook;
+    },
   },
 };
 
